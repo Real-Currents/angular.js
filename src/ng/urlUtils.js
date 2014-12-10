@@ -63,30 +63,40 @@ var originUrl = urlResolve(window.location.href, true);
  *
  */
 function urlResolve(url, base) {
-  var href = url;
+	var href = url;
 
-  if (msie) {
-    // Normalize before parse.  Refer Implementation Notes on why this is
-    // done in two steps on IE.
-    urlParsingNode.setAttribute("href", href);
-    href = urlParsingNode.href;
-  }
+	if (msie) {
+	// Normalize before parse.  Refer Implementation Notes on why this is
+	// done in two steps on IE.
+		urlParsingNode.setAttribute("href", href);
+		href = urlParsingNode.href;
+	}
 
-  urlParsingNode.setAttribute('href', href);
+	urlParsingNode.setAttribute('href', href);
+	
+	/* REV EDIT:
+	 * Fix pathname parsing...
+	 */
+	if( href.match(/^https?:\/\/(?:[^:@\/]+(?::[^@\/]+)?@)?([\w|\-|\.]+)(?::\d+)?(?:\/.*)?$/) !== null ) {
+		var parts = href.match(/^https?:\/\/(?:[^:@\/]+(?::[^@\/]+)?@)?([\w|\-|\.]+)(?::\d+)?(\/.*)?$/);
+		urlParsingNode.host = parts[1];
+		urlParsingNode.pathname = parts[2];
+	}
+	/* END EDIT */
 
-  // urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
-  return {
-    href: urlParsingNode.href,
-    protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
-    host: urlParsingNode.host,
-    search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
-    hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
-    hostname: urlParsingNode.hostname,
-    port: urlParsingNode.port,
-    pathname: (urlParsingNode.pathname.charAt(0) === '/')
-      ? urlParsingNode.pathname
-      : '/' + urlParsingNode.pathname
-  };
+	// urlParsingNode provides the UrlUtils interface - http://url.spec.whatwg.org/#urlutils
+	return {
+		href: urlParsingNode.href,
+		protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, '') : '',
+		host: urlParsingNode.host,
+		search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, '') : '',
+		hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
+		hostname: urlParsingNode.hostname,
+		port: urlParsingNode.port,
+		pathname: (urlParsingNode.pathname.charAt(0) === '/')
+		  ? urlParsingNode.pathname
+		  : '/' + urlParsingNode.pathname
+	};
 }
 
 /**
