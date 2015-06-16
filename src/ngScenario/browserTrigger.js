@@ -2,12 +2,6 @@
 
 (function() {
   /**
-   * documentMode is an IE-only property
-   * http://msdn.microsoft.com/en-us/library/ie/cc196988(v=vs.85).aspx
-   */
-  var msie = document.documentMode;
-
-  /**
    * Triggers a browser event. Attempts to choose the right event if one is
    * not specified.
    *
@@ -57,37 +51,35 @@
     }
 
     var evnt;
-    if(/transitionend/.test(eventType)) {
-      if(window.WebKitTransitionEvent) {
+    if (/transitionend/.test(eventType)) {
+      if (window.WebKitTransitionEvent) {
         evnt = new WebKitTransitionEvent(eventType, eventData);
         evnt.initEvent(eventType, false, true);
-      }
-      else {
+      } else {
         try {
           evnt = new TransitionEvent(eventType, eventData);
         }
-        catch(e) {
+        catch (e) {
           evnt = document.createEvent('TransitionEvent');
           evnt.initTransitionEvent(eventType, null, null, null, eventData.elapsedTime || 0);
         }
       }
-    }
-    else if(/animationend/.test(eventType)) {
-      if(window.WebKitAnimationEvent) {
+    } else if (/animationend/.test(eventType)) {
+      if (window.WebKitAnimationEvent) {
         evnt = new WebKitAnimationEvent(eventType, eventData);
         evnt.initEvent(eventType, false, true);
-      }
-      else {
+      } else {
         try {
           evnt = new AnimationEvent(eventType, eventData);
         }
-        catch(e) {
+        catch (e) {
           evnt = document.createEvent('AnimationEvent');
           evnt.initAnimationEvent(eventType, null, null, null, eventData.elapsedTime || 0);
         }
       }
-    }
-    else {
+    } else if (/touch/.test(eventType) && supportsTouchEvents()) {
+      evnt = createTouchEvent(element, eventType, x, y);
+    } else {
       evnt = document.createEvent('MouseEvents');
       x = x || 0;
       y = y || 0;
@@ -100,7 +92,7 @@
      * read */
     evnt.$manualTimeStamp = eventData.timeStamp;
 
-    if(!evnt) return;
+    if (!evnt) return;
 
     var originalPreventDefault = evnt.preventDefault,
         appWindow = element.ownerDocument.defaultView,
@@ -122,4 +114,35 @@
 
     return finalProcessDefault;
   };
+
+  function supportsTouchEvents() {
+    if ('_cached' in supportsTouchEvents) {
+      return supportsTouchEvents._cached;
+    }
+    if (!document.createTouch || !document.createTouchList) {
+      supportsTouchEvents._cached = false;
+      return false;
+    }
+    try {
+      document.createEvent('TouchEvent');
+    } catch (e) {
+      supportsTouchEvents._cached = false;
+      return false;
+    }
+    supportsTouchEvents._cached = true;
+    return true;
+  }
+
+  function createTouchEvent(element, eventType, x, y) {
+    var evnt = new Event(eventType);
+    x = x || 0;
+    y = y || 0;
+
+    var touch = document.createTouch(window, element, Date.now(), x, y, x, y);
+    var touches = document.createTouchList(touch);
+
+    evnt.touches = touches;
+
+    return evnt;
+  }
 }());

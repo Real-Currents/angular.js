@@ -2,7 +2,7 @@
 
 describe('$cookies', function() {
   beforeEach(module('ngCookies', function($provide) {
-    $provide.factory('$browser', function(){
+    $provide.factory('$browser', function() {
       return angular.extend(new angular.mock.$Browser(), {cookieHash: {preexisting:'oldCookie'}});
     });
   }));
@@ -42,6 +42,51 @@ describe('$cookies', function() {
 
     expect($browser.cookies()).
       toEqual({'preexisting': 'oldCookie', 'oatmealCookie': 'gone'});
+  }));
+
+
+  it('should only set the browser cookie once per cookie change',
+      inject(function($cookies, $browser, $rootScope) {
+    function hasArgs(call) {
+      return call.args.length > 0;
+    }
+
+    spyOn($browser, 'cookies').andCallThrough();
+
+    $cookies.oatmealCookie = 'nom nom';
+    $rootScope.$digest();
+
+    expect($browser.cookies.calls.filter(hasArgs).length).toEqual(1);
+  }));
+
+
+  it('should only delete the browser cookie once per cookie delete',
+      inject(function($cookies, $browser, $rootScope) {
+    function hasArgs(call) {
+      return call.args.length > 0;
+    }
+
+    spyOn($browser, 'cookies').andCallThrough();
+
+    delete $cookies.preexisting;
+    $rootScope.$digest();
+
+    expect($browser.cookies.calls.filter(hasArgs).length).toEqual(1);
+  }));
+
+
+  it('should allow cookies to be set outside the service without overwriting/duplicating',
+      inject(function($cookies, $browser, $rootScope) {
+    var browserCookieSpy = spyOn($browser, 'cookies').andCallThrough();
+
+    function hasArgs(call) {
+      return call.args.length > 0;
+    }
+
+    $browser.cookieHash['preexisting'] = 'vanilla';
+    $cookies.oatmealCookie = 'nom nom';
+    $rootScope.$digest();
+    expect(browserCookieSpy.calls.filter(hasArgs).length).toEqual(1);
   }));
 
 
@@ -86,7 +131,7 @@ describe('$cookies', function() {
       inject(function($cookies, $browser, $rootScope) {
     var i, longVal;
 
-    for (i=0; i<5000; i++) {
+    for (i = 0; i < 5000; i++) {
       longVal += '*';
     }
 
@@ -135,7 +180,7 @@ describe('$cookieStore', function() {
     $rootScope.$digest();
     expect($browser.cookies()).toEqual({});
   }));
-  it('should handle empty string value cookies', inject(function ($cookieStore, $browser, $rootScope) {
+  it('should handle empty string value cookies', inject(function($cookieStore, $browser, $rootScope) {
     $cookieStore.put("emptyCookie",'');
     $rootScope.$digest();
     expect($browser.cookies()).

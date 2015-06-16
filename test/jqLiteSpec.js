@@ -179,7 +179,7 @@ describe('jqLite', function() {
       }
     );
 
-    it('should return null values', function () {
+    it('should return null values', function() {
       var ul = jqLite('<ul><li><p><b>deep deep</b><p></li></ul>'),
           li = ul.find('li'),
           b = li.find('b');
@@ -359,7 +359,7 @@ describe('jqLite', function() {
       expect(jqLite(c).data('prop')).toBeUndefined();
     });
 
-    it('should only remove the specified value when providing a property name to removeData', function () {
+    it('should only remove the specified value when providing a property name to removeData', function() {
       var selected = jqLite(a);
 
       expect(selected.data('prop1')).toBeUndefined();
@@ -612,6 +612,30 @@ describe('jqLite', function() {
       expect(elm.attr('readOnly')).toBeUndefined();
       expect(elm.attr('disabled')).toBeUndefined();
     });
+
+    it('should do nothing when setting or getting on attribute nodes', function() {
+      var attrNode = jqLite(document.createAttribute('myattr'));
+      expect(attrNode).toBeDefined();
+      expect(attrNode[0].nodeType).toEqual(2);
+      expect(attrNode.attr('some-attribute','somevalue')).toEqual(attrNode);
+      expect(attrNode.attr('some-attribute')).toBeUndefined();
+    });
+
+    it('should do nothing when setting or getting on text nodes', function() {
+      var textNode = jqLite(document.createTextNode('some text'));
+      expect(textNode).toBeDefined();
+      expect(textNode[0].nodeType).toEqual(3);
+      expect(textNode.attr('some-attribute','somevalue')).toEqual(textNode);
+      expect(textNode.attr('some-attribute')).toBeUndefined();
+    });
+
+    it('should do nothing when setting or getting on comment nodes', function() {
+      var comment = jqLite(document.createComment('some comment'));
+      expect(comment).toBeDefined();
+      expect(comment[0].nodeType).toEqual(8);
+      expect(comment.attr('some-attribute','somevalue')).toEqual(comment);
+      expect(comment.attr('some-attribute')).toBeUndefined();
+    });
   });
 
 
@@ -764,7 +788,7 @@ describe('jqLite', function() {
 
       });
 
-      it('should allow toggling multiple classes without a condition', function () {
+      it('should allow toggling multiple classes without a condition', function() {
         var selector = jqLite([a, b]);
         expect(selector.toggleClass('abc cde')).toBe(selector);
         expect(jqLite(a).hasClass('abc')).toBe(true);
@@ -792,7 +816,7 @@ describe('jqLite', function() {
         expect(jqLite(b).hasClass('cde')).toBe(false);
       });
 
-      it('should allow toggling multiple classes with a condition', function () {
+      it('should allow toggling multiple classes with a condition', function() {
         var selector = jqLite([a, b]);
         selector.addClass('abc');
         expect(selector.toggleClass('abc cde', true)).toBe(selector);
@@ -809,7 +833,7 @@ describe('jqLite', function() {
         expect(jqLite(b).hasClass('cde')).toBe(false);
       });
 
-      it('should not break for null / undefined selectors', function () {
+      it('should not break for null / undefined selectors', function() {
         var selector = jqLite([a, b]);
         expect(selector.toggleClass(null)).toBe(selector);
         expect(selector.toggleClass(undefined)).toBe(selector);
@@ -939,7 +963,7 @@ describe('jqLite', function() {
       expect(input.val()).toEqual('abc');
     });
 
-    it('should get an array of selected elements from a multi select', function () {
+    it('should get an array of selected elements from a multi select', function() {
       expect(jqLite(
         '<select multiple>' +
           '<option selected>test 1</option>' +
@@ -999,7 +1023,7 @@ describe('jqLite', function() {
         alert: noop,
         setInterval: noop,
         length:10, // pretend you are an array
-        addEventListener: function(type, fn){
+        addEventListener: function(type, fn) {
           expect(type).toEqual('hashchange');
           eventFn = fn;
         },
@@ -1158,8 +1182,8 @@ describe('jqLite', function() {
 
       it('should fire mouseenter when coming from outside the browser window', function() {
         if (window.jQuery) return;
-        var browserMoveTrigger = function(from, to){
-          var fireEvent = function(type, element, relatedTarget){
+        var browserMoveTrigger = function(from, to) {
+          var fireEvent = function(type, element, relatedTarget) {
             var evnt;
             evnt = document.createEvent('MouseEvents');
 
@@ -1199,7 +1223,7 @@ describe('jqLite', function() {
     });
 
     // Only run this test for jqLite and not normal jQuery
-    if ( _jqLiteMode ) {
+    if (_jqLiteMode) {
       it('should throw an error if eventData or a selector is passed', function() {
         var elm = jqLite(a),
             anObj = {},
@@ -1233,7 +1257,7 @@ describe('jqLite', function() {
       aElem.off('click', function() {});
     });
 
-    it('should do nothing when a specific listener was not registered', function () {
+    it('should do nothing when a specific listener was not registered', function() {
       var aElem = jqLite(a);
       aElem.on('click', function() {});
 
@@ -1484,11 +1508,11 @@ describe('jqLite', function() {
 
 
     // Only run this test for jqLite and not normal jQuery
-    if ( _jqLiteMode ) {
-      it('should throw an error if a selector is passed', function () {
+    if (_jqLiteMode) {
+      it('should throw an error if a selector is passed', function() {
         var aElem = jqLite(a);
         aElem.on('click', noop);
-        expect(function () {
+        expect(function() {
           aElem.off('click', noop, '.test');
         }).toThrowMatching(/\[jqLite:offargs\]/);
       });
@@ -1662,7 +1686,7 @@ describe('jqLite', function() {
       text.wrap("<span>");
       expect(text.parent().text()).toEqual('A<a>B</a>C');
     });
-    it('should clone elements to be wrapped around target', function () {
+    it('should clone elements to be wrapped around target', function() {
       var root = jqLite('<div class="sigil"></div>');
       var span = jqLite('<span>A</span>');
 
@@ -1933,7 +1957,7 @@ describe('jqLite', function() {
       expect(actualEvent.type).toEqual('click');
     });
 
-    it('should stop triggering handlers when stopImmediatePropagation is called', function () {
+    it('should stop triggering handlers when stopImmediatePropagation is called', function() {
       var element = jqLite(a),
           clickSpy1 = jasmine.createSpy('clickSpy1'),
           clickSpy2 = jasmine.createSpy('clickSpy2').andCallFake(function(event) { event.stopImmediatePropagation(); }),

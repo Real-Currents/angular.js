@@ -1,5 +1,7 @@
 'use strict';
 
+/* global getHash:true, stripHash:true */
+
 var historyEntriesLength;
 var sniffer = {};
 
@@ -51,18 +53,24 @@ function MockWindow(options) {
       mockWindow.history.state = null;
       historyEntriesLength++;
     },
+    get hash() {
+      return getHash(locationHref);
+    },
+    set hash(value) {
+      locationHref = stripHash(locationHref) + '#' + value;
+    },
     replace: function(url) {
       locationHref = url;
       mockWindow.history.state = null;
-    },
+    }
   };
 
   this.history = {
-    pushState: function () {
+    pushState: function() {
       this.replaceState.apply(this, arguments);
       historyEntriesLength++;
     },
-    replaceState: function (state, title, url) {
+    replaceState: function(state, title, url) {
       locationHref = url;
       mockWindow.history.state = copy(state);
     }
@@ -81,7 +89,7 @@ function MockWindow(options) {
         ieState = value;
       },
       configurable: true,
-      enumerable: true,
+      enumerable: true
     });
   }
 }
@@ -95,7 +103,7 @@ function MockDocument() {
   this.find = function(name) {
     if (name == 'base') {
       return {
-        attr: function(name){
+        attr: function(name) {
           if (name == 'href') {
             return self.basePath;
           } else {
@@ -161,8 +169,8 @@ describe('browser', function() {
     describe('not in IE', runTests({msie: false}));
 
     function runTests(options) {
-      return function () {
-        it('should return the same state object on every read', function () {
+      return function() {
+        it('should return the same state object on every read', function() {
           var msie = options.msie;
 
           fakeWindow = new MockWindow({msie: msie});
@@ -185,7 +193,7 @@ describe('browser', function() {
     expect(browser.cookies).toBeDefined();
   });
 
-  describe('outstading requests', function() {
+  describe('outstanding requests', function() {
     it('should process callbacks immedietly with no outstanding requests', function() {
       var callback = jasmine.createSpy('callback');
       browser.notifyWhenNoOutstandingRequests(callback);
@@ -337,7 +345,7 @@ describe('browser', function() {
       it('should log warnings when 4kb per cookie storage limit is reached', function() {
         var i, longVal = '', cookieStr;
 
-        for(i=0; i<4083; i++) {
+        for (i = 0; i < 4083; i++) {
           longVal += 'x';
         }
 
@@ -349,8 +357,8 @@ describe('browser', function() {
 
         browser.cookies('x', longVal + 'xxxx'); //total size 4097-4099, a warning should be logged
         expect(logs.warn).toEqual(
-          [[ "Cookie 'x' possibly not set or overflowed because it was too large (4097 > 4096 " +
-             "bytes)!" ]]);
+          [["Cookie 'x' possibly not set or overflowed because it was too large (4097 > 4096 " +
+             "bytes)!"]]);
 
         //force browser to dropped a cookie and make sure that the cache is not out of sync
         browser.cookies('x', 'shortVal');
@@ -367,12 +375,12 @@ describe('browser', function() {
       });
     });
 
-    describe('put via cookies(cookieName, string), if no <base href> ', function () {
-      beforeEach(function () {
+    describe('put via cookies(cookieName, string), if no <base href> ', function() {
+      beforeEach(function() {
         fakeDocument.basePath = undefined;
       });
 
-      it('should default path in cookie to "" (empty string)', function () {
+      it('should default path in cookie to "" (empty string)', function() {
         browser.cookies('cookie', 'bender');
         // This only fails in Safari and IE when cookiePath returns undefined
         // Where it now succeeds since baseHref return '' instead of undefined
@@ -387,7 +395,7 @@ describe('browser', function() {
       });
 
 
-      it ('should return a value for an existing cookie', function() {
+      it('should return a value for an existing cookie', function() {
         document.cookie = "foo=bar=baz;path=/";
         expect(browser.cookies().foo).toEqual('bar=baz');
       });
@@ -400,7 +408,7 @@ describe('browser', function() {
         expect(browser.cookies()['foo']).toBe('"first"');
       });
 
-      it ('should decode cookie values that were encoded by puts', function() {
+      it('should decode cookie values that were encoded by puts', function() {
         document.cookie = "cookie2%3Dbar%3Bbaz=val%3Due;path=/";
         expect(browser.cookies()['cookie2=bar;baz']).toEqual('val=ue');
       });
@@ -550,6 +558,17 @@ describe('browser', function() {
       expect(locationReplace).not.toHaveBeenCalled();
     });
 
+    it("should retain the # character when the only change is clearing the hash fragment, to prevent page reload", function() {
+      sniffer.history = true;
+
+      browser.url('http://server/#123');
+      expect(fakeWindow.location.href).toEqual('http://server/#123');
+
+      browser.url('http://server/');
+      expect(fakeWindow.location.href).toEqual('http://server/#');
+
+    });
+
     it('should use location.replace when history.replaceState not available', function() {
       sniffer.history = false;
       browser.url('http://new.org', true);
@@ -560,6 +579,7 @@ describe('browser', function() {
       expect(replaceState).not.toHaveBeenCalled();
       expect(fakeWindow.location.href).toEqual('http://server/');
     });
+
 
     it('should use location.replace and not use replaceState when the url only changed in the hash fragment to please IE10/11', function() {
       sniffer.history = true;
@@ -572,10 +592,17 @@ describe('browser', function() {
       expect(fakeWindow.location.href).toEqual('http://server/');
     });
 
+
     it('should return $browser to allow chaining', function() {
       expect(browser.url('http://any.com')).toBe(browser);
     });
 
+    it('should return $browser to allow chaining even if the previous and current URLs and states match', function() {
+      expect(browser.url('http://any.com').url('http://any.com')).toBe(browser);
+      var state = { any: 'foo' };
+      expect(browser.url('http://any.com', false, state).url('http://any.com', false, state)).toBe(browser);
+      expect(browser.url('http://any.com', true, state).url('http://any.com', true, state)).toBe(browser);
+    });
 
     it('should decode single quotes to work around FF bug 407273', function() {
       fakeWindow.location.href = "http://ff-bug/?single%27quote";
@@ -920,7 +947,7 @@ describe('browser', function() {
       });
     }
 
-    describe('update $location when it was changed outside of Angular in sync '+
+    describe('update $location when it was changed outside of Angular in sync ' +
        'before $digest was called', function() {
 
       it('should work with no history support, no html5Mode', function() {

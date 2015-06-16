@@ -22,7 +22,7 @@ describe("$animate", function() {
     it("should enter the element to the start of the parent container",
       inject(function($animate, $compile, $rootScope) {
 
-      for(var i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         element.append(jqLite('<div> ' + i + '</div>'));
       }
 
@@ -121,37 +121,38 @@ describe("$animate", function() {
       $animate.enabled(true);
 
       $animate.enter(element, parent, null, {
-        to: { color : 'red' }
+        to: { color: 'red' }
       });
       assertColor('red');
 
       $animate.move(element, null, other, {
-        to: { color : 'yellow' }
+        to: { color: 'yellow' }
       });
       assertColor('yellow');
 
       $animate.addClass(element, 'on', {
-        to: { color : 'green' }
+        to: { color: 'green' }
       });
       $rootScope.$digest();
       assertColor('green');
 
       $animate.setClass(element, 'off', 'on', {
-        to: { color : 'black' }
+        to: { color: 'black' }
       });
       $rootScope.$digest();
       assertColor('black');
 
       $animate.removeClass(element, 'off', {
-        to: { color : 'blue' }
+        to: { color: 'blue' }
       });
       $rootScope.$digest();
       assertColor('blue');
 
-      $animate.leave(element, 'off', {
-        to: { color : 'blue' }
+      $animate.leave(element, {
+        to: { color: 'yellow' }
       });
-      assertColor('blue'); //nothing should happen the element is gone anyway
+      $rootScope.$digest();
+      assertColor('yellow');
 
       function assertColor(color) {
         expect(element[0].style.color).toBe(color);
@@ -165,8 +166,8 @@ describe("$animate", function() {
 
       element.css('color', 'red');
       $animate.addClass(element, 'on', {
-        from : { color : 'green' },
-        to : { borderColor : 'purple' }
+        from: { color: 'green' },
+        to: { borderColor: 'purple' }
       });
       $rootScope.$digest();
 
@@ -200,13 +201,13 @@ describe("$animate", function() {
         var removeClassImmediately = $animate.$$removeClassImmediately;
         addClass = spyOn($animate, '$$addClassImmediately').andCallFake(function(element, classes) {
           var names = classes;
-          if (Object.prototype.toString.call(classes) === '[object Array]') names = classes.join( ' ');
+          if (Object.prototype.toString.call(classes) === '[object Array]') names = classes.join(' ');
           log('addClass(' + names + ')');
           return addClassImmediately.call($animate, element, classes);
         });
         removeClass = spyOn($animate, '$$removeClassImmediately').andCallFake(function(element, classes) {
           var names = classes;
-          if (Object.prototype.toString.call(classes) === '[object Array]') names = classes.join( ' ');
+          if (Object.prototype.toString.call(classes) === '[object Array]') names = classes.join(' ');
           log('removeClass(' + names + ')');
           return removeClassImmediately.call($animate, element, classes);
         });

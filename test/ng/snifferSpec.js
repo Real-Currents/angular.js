@@ -64,9 +64,10 @@ describe('$sniffer', function() {
 
     it('should claim that IE9 doesn\'t have support for "oninput"', function() {
       // IE9 implementation is fubared, so it's better to pretend that it doesn't have the support
+      // IE10+ implementation is fubared when mixed with placeholders
       mockDivElement = {oninput: noop};
 
-      expect($sniffer.hasEvent('input')).toBe((msie == 9) ? false : true);
+      expect($sniffer.hasEvent('input')).toBe(!(msie && msie <= 11));
     });
   });
 
@@ -84,13 +85,11 @@ describe('$sniffer', function() {
       inject(function($sniffer, $window) {
         var expectedPrefix;
         var ua = $window.navigator.userAgent.toLowerCase();
-        if(/chrome/i.test(ua) || /safari/i.test(ua) || /webkit/i.test(ua)) {
+        if (/chrome/i.test(ua) || /safari/i.test(ua) || /webkit/i.test(ua)) {
           expectedPrefix = 'Webkit';
-        }
-        else if(/firefox/i.test(ua)) {
+        } else if (/firefox/i.test(ua)) {
           expectedPrefix = 'Moz';
-        }
-        else if(/ie/i.test(ua) || /trident/i.test(ua)) {
+        } else if (/ie/i.test(ua) || /trident/i.test(ua)) {
           expectedPrefix = 'Ms';
         }
         expect($sniffer.vendorPrefix).toBe(expectedPrefix);
@@ -100,8 +99,8 @@ describe('$sniffer', function() {
     it('should still work for an older version of Webkit', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {
+          body: {
+            style: {
               WebkitOpacity: '0'
             }
           }
@@ -125,8 +124,8 @@ describe('$sniffer', function() {
     it('should be false when there is no animation style', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {}
+          body: {
+            style: {}
           }
         };
         $provide.value('$document', jqLite(doc));
@@ -140,11 +139,10 @@ describe('$sniffer', function() {
       module(function($provide) {
         var animationStyle = 'some_animation 2s linear';
         var doc = {
-          body : {
-            style : {
-              WebkitAnimation : animationStyle,
-              MozAnimation : animationStyle,
-              OAnimation : animationStyle
+          body: {
+            style: {
+              WebkitAnimation: animationStyle,
+              MozAnimation: animationStyle
             }
           }
         };
@@ -158,9 +156,9 @@ describe('$sniffer', function() {
     it('should be true with w3c-style animations', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {
-              animation : 'some_animation 2s linear'
+          body: {
+            style: {
+              animation: 'some_animation 2s linear'
             }
           }
         };
@@ -174,8 +172,8 @@ describe('$sniffer', function() {
     it('should be true on android with older body style properties', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {
+          body: {
+            style: {
               webkitAnimation: ''
             }
           }
@@ -196,8 +194,8 @@ describe('$sniffer', function() {
     it('should be true when an older version of Webkit is used', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {
+          body: {
+            style: {
               WebkitOpacity: '0'
             }
           }
@@ -222,8 +220,8 @@ describe('$sniffer', function() {
     it('should be false when there is no transition style', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {}
+          body: {
+            style: {}
           }
         };
         $provide.value('$document', jqLite(doc));
@@ -237,11 +235,10 @@ describe('$sniffer', function() {
       module(function($provide) {
         var transitionStyle = '1s linear all';
         var doc = {
-          body : {
-            style : {
-              WebkitTransition : transitionStyle,
-              MozTransition : transitionStyle,
-              OTransition : transitionStyle
+          body: {
+            style: {
+              WebkitTransition: transitionStyle,
+              MozTransition: transitionStyle
             }
           }
         };
@@ -255,9 +252,9 @@ describe('$sniffer', function() {
     it('should be true with w3c-style transitions', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {
-              transition : '1s linear all'
+          body: {
+            style: {
+              transition: '1s linear all'
             }
           }
         };
@@ -271,8 +268,8 @@ describe('$sniffer', function() {
     it('should be true on android with older body style properties', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {
+          body: {
+            style: {
               webkitTransition: ''
             }
           }
@@ -297,8 +294,8 @@ describe('$sniffer', function() {
     it('should be true on Boxee box with an older version of Webkit', function() {
       module(function($provide) {
         var doc = {
-          body : {
-            style : {}
+          body: {
+            style: {}
           }
         };
         var win = {

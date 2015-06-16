@@ -50,7 +50,7 @@ Yes. See instructions in {@link downloading}.
 
 ### What browsers does Angular work with?
 
-We run our extensive test suite against the following browsers: Safari, Chrome, Firefox, Opera,
+We run our extensive test suite against the following browsers: Safari, Chrome, Firefox, Opera 15,
 IE9 and mobile browsers (Android, Chrome Mobile, iOS Safari). See {@link guide/ie Internet
 Explorer Compatibility} for more details in supporting legacy IE browsers.
 
@@ -67,7 +67,7 @@ illustration we typically build snappy apps with hundreds or thousands of active
 
 ### How big is the angular.js file that I need to include?
 
-The size of the file is < 36KB compressed and minified.
+The size of the file is ~50KB compressed and minified.
 
 
 ### Can I use the open-source Closure Library with Angular?

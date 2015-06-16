@@ -5,7 +5,7 @@ describe('ngShow / ngHide', function() {
 
   function expectVisibility(exprs, ngShowOrNgHide, shownOrHidden) {
     element = $compile('<div></div>')($scope);
-    forEach(exprs, function (expr) {
+    forEach(exprs, function(expr) {
       var childElem = $compile('<div ' + ngShowOrNgHide + '="' + expr + '"></div>')($scope);
       element.append(childElem);
       $scope.$digest();
@@ -13,7 +13,7 @@ describe('ngShow / ngHide', function() {
     });
   }
 
-  beforeEach(inject(function ($rootScope, _$compile_) {
+  beforeEach(inject(function($rootScope, _$compile_) {
     $scope = $rootScope.$new();
     $compile = _$compile_;
   }));
@@ -45,7 +45,7 @@ describe('ngShow / ngHide', function() {
     it('should show if the expression is a function with a no arguments', function() {
       element = jqLite('<div ng-show="exp"></div>');
       element = $compile(element)($scope);
-      $scope.exp = function(){};
+      $scope.exp = function() {};
       $scope.$digest();
       expect(element).toBeShown();
     });
@@ -119,7 +119,7 @@ describe('ngShow / ngHide animations', function() {
     body = jqLite(document.body);
   });
 
-  afterEach(function(){
+  afterEach(function() {
     dealoc(body);
     dealoc(element);
     body.removeAttr('ng-animation-running');

@@ -43,7 +43,7 @@ angular.module('ngCookies', ['ng']).
    *   }]);
    * ```
    */
-   factory('$cookies', ['$rootScope', '$browser', function ($rootScope, $browser) {
+   factory('$cookies', ['$rootScope', '$browser', function($rootScope, $browser) {
       var cookies = {},
           lastCookies = {},
           lastBrowserCookies,
@@ -86,11 +86,12 @@ angular.module('ngCookies', ['ng']).
         for (name in lastCookies) {
           if (isUndefined(cookies[name])) {
             $browser.cookies(name, undefined);
+            delete lastCookies[name];
           }
         }
 
         //update all cookies updated in $cookies
-        for(name in cookies) {
+        for (name in cookies) {
           value = cookies[name];
           if (!angular.isString(value)) {
             value = '' + value;
@@ -98,13 +99,13 @@ angular.module('ngCookies', ['ng']).
           }
           if (value !== lastCookies[name]) {
             $browser.cookies(name, value);
+            lastCookies[name] = value;
             updated = true;
           }
         }
 
         //verify what was actually stored
-        if (updated){
-          updated = false;
+        if (updated) {
           browserCookies = $browser.cookies();
 
           for (name in cookies) {
@@ -112,10 +113,10 @@ angular.module('ngCookies', ['ng']).
               //delete or reset all cookies that the browser dropped from $cookies
               if (isUndefined(browserCookies[name])) {
                 delete cookies[name];
+                delete lastCookies[name];
               } else {
-                cookies[name] = browserCookies[name];
+                cookies[name] = lastCookies[name] = browserCookies[name];
               }
-              updated = true;
             }
           }
         }

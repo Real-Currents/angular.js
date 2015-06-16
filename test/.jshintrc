@@ -18,6 +18,7 @@
     "angularModule": false,
     "nodeName_": false,
     "uid": false,
+    "toDebugString": false,
 
     "lowercase": false,
     "uppercase": false,
@@ -54,10 +55,8 @@
     "isPromiseLike": false,
     "makeMap": false,
     "map": false,
-    "size": false,
     "includes": false,
     "arrayRemove": false,
-    "isLeafNode": false,
     "copy": false,
     "shallowCopy": false,
     "equals": false,
@@ -143,6 +142,9 @@
     "waitsFor": false,
     "runs": false,
     "dump": false,
+    "they": false,
+    "tthey": false,
+    "xthey": false,
 
     /* e2e */
     "browser": false,

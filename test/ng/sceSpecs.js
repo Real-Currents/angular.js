@@ -27,11 +27,20 @@ describe('SCE', function() {
   });
 
   describe('IE<11 quirks mode', function() {
+    /* global msie: true */
+    var msieBackup;
+
+    beforeEach(function() {
+      msieBackup = msie;
+    });
+
+    afterEach(function() {
+      msie = msieBackup;
+    });
+
     function runTest(enabled, documentMode, expectException) {
+      msie = documentMode;
       module(function($provide) {
-        $provide.value('$document', [{
-          documentMode: documentMode
-        }]);
         $provide.value('$sceDelegate', {trustAs: null, valueOf: null, getTrusted: null});
       });
 
@@ -151,7 +160,7 @@ describe('SCE', function() {
     it('should NOT unwrap values when the type is different', inject(function($sce) {
       var originalValue = "originalValue";
       var wrappedValue = $sce.trustAs($sce.HTML, originalValue);
-      expect(function () { $sce.getTrusted($sce.CSS, wrappedValue); }).toThrowMinErr(
+      expect(function() { $sce.getTrusted($sce.CSS, wrappedValue); }).toThrowMinErr(
           '$sce', 'unsafe', 'Attempting to use an unsafe value in a safe context.');
     }));
 
@@ -208,11 +217,11 @@ describe('SCE', function() {
       expect($sce.parseAsJs('"string"')()).toBe("string");
     }));
 
-    it('should be possible to do one-time binding', function () {
+    it('should be possible to do one-time binding', function() {
       module(provideLog);
       inject(function($sce, $rootScope, log) {
         $rootScope.$watch($sce.parseAsHtml('::foo'), function(value) {
-          log(value+'');
+          log(value + '');
         });
 
         $rootScope.$digest();
