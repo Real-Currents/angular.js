@@ -1,3 +1,6 @@
+[submodule "angular"]
+	path = dist
+	url = https://github.com/Real-Currents/angular.git
 [submodule "wiki"]
 	path = wiki
-	url = git@github.com:Real-Currents/angular.wiki.git
+	url = https://github.com/Real-Currents/angular.wiki.git
