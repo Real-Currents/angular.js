@@ -66,8 +66,7 @@ function urlResolve(url, base) {
 	}
 
 	urlParsingNode.setAttribute('href', href);
-	
-	if( typeof href === "string" && href.match(/^https?:\/\/(?:[^:@\/]+(?::[^@\/]+)?@)?([\w|\-|\.]+)(?::\d+)?(?:\/.*)?$/) !== null ) {
+	if (typeof href === "string" && href.match(/^https?:\/\/(?:[^:@\/]+(?::[^@\/]+)?@)?([\w|\-|\.]+)(?::\d+)?(?:\/.*)?$/) !== null) {
 		var parts = href.match(/^https?:\/\/(?:[^:@\/]+(?::[^@\/]+)?@)?([\w|\-|\.]+)(?::\d+)?(\/.*)?$/);
 		urlParsingNode.host = parts[1];
 		urlParsingNode.pathname = parts[2];
@@ -82,9 +81,7 @@ function urlResolve(url, base) {
 		hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, '') : '',
 		hostname: urlParsingNode.hostname,
 		port: urlParsingNode.port,
-		pathname: (urlParsingNode.pathname.charAt(0) === '/')
-		  ? urlParsingNode.pathname
-		  : '/' + urlParsingNode.pathname
+		pathname: (urlParsingNode.pathname.charAt(0) === '/') ? urlParsingNode.pathname : '/' + urlParsingNode.pathname
 	};
 }
 
