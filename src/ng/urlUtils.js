@@ -55,7 +55,7 @@ var originUrl = urlResolve(window.location.href);
  *   | pathname      | The pathname, beginning with "/"
  *
  */
-function urlResolve(url, base) {
+function urlResolve(url) {
 	var href = url;
 
 	if (msie) {
@@ -66,6 +66,7 @@ function urlResolve(url, base) {
 	}
 
 	urlParsingNode.setAttribute('href', href);
+    
 	if (typeof href === "string" && href.match(/^https?:\/\/(?:[^:@\/]+(?::[^@\/]+)?@)?([\w|\-|\.]+)(?::\d+)?(?:\/.*)?$/) !== null) {
 		var parts = href.match(/^https?:\/\/(?:[^:@\/]+(?::[^@\/]+)?@)?([\w|\-|\.]+)(?::\d+)?(\/.*)?$/);
 		urlParsingNode.host = parts[1];

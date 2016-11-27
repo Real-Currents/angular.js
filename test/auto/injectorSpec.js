@@ -283,6 +283,14 @@ describe('injector', function() {
         it('should take args before first arrow', function() {
           expect(annotate(eval('a => b => b'))).toEqual(['a']);
         });
+
+        // Support: Chrome 50-51 only
+        // TODO (gkalpak): Remove when Chrome v52 is relased.
+        // it('should be able to inject fat-arrow function', function() {
+        //   inject(($injector) => {
+        //     expect($injector).toBeDefined();
+        //   });
+        // });
       }
 
       if (support.classes) {
@@ -293,6 +301,39 @@ describe('injector', function() {
           expect(instance).toEqual(new Clazz('a-value'));
           expect(instance.aVal()).toEqual('a-value');
         });
+
+        if (/chrome/.test(navigator.userAgent)) {
+          they('should detect ES6 classes regardless of whitespace/comments ($prop)', [
+            'class Test {}',
+            'class Test{}',
+            'class //<--ES6 stuff\nTest {}',
+            'class//<--ES6 stuff\nTest {}',
+            'class {}',
+            'class{}',
+            'class //<--ES6 stuff\n {}',
+            'class//<--ES6 stuff\n {}',
+            'class/* Test */{}',
+            'class /* Test */ {}'
+          ], function(classDefinition) {
+            var Clazz = eval('(' + classDefinition + ')');
+            var instance = injector.invoke(Clazz);
+
+            expect(instance).toEqual(jasmine.any(Clazz));
+          });
+        }
+
+        // Support: Chrome 50-51 only
+        // TODO (gkalpak): Remove when Chrome v52 is relased.
+        // it('should be able to invoke classes', function() {
+        //   class Test {
+        //     constructor($injector) {
+        //       this.$injector = $injector;
+        //     }
+        //   }
+        //   var instance = injector.invoke(Test, null, null, 'Test');
+
+        //   expect(instance.$injector).toBe(injector);
+        // });
       }
       /*jshint +W061 */
     });

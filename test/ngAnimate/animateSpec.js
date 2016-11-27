@@ -13,7 +13,7 @@ describe("animations", function() {
     };
   }));
 
-  afterEach(inject(function($$jqLite) {
+  afterEach(inject(function() {
     dealoc(element);
   }));
 
@@ -395,6 +395,19 @@ describe("animations", function() {
 
       expect(capturedAnimation).toBeFalsy();
     }));
+
+    it('should not attempt to perform an animation on an empty jqLite collection',
+      inject(function($rootScope, $animate) {
+
+        element.html('');
+        var emptyNode = jqLite(element[0].firstChild);
+
+        $animate.addClass(emptyNode, 'some-class');
+        $rootScope.$digest();
+
+        expect(capturedAnimation).toBeFalsy();
+      })
+    );
 
     it('should perform the leave domOperation if a text node is used',
       inject(function($rootScope, $animate) {
@@ -1957,6 +1970,17 @@ describe("animations", function() {
       $animate.flush();
       expect(count).toBe(5);
     }));
+
+    it('should not get affected by custom, enumerable properties on `Object.prototype`',
+      inject(function($animate) {
+        Object.prototype.foo = 'ENUMARABLE_AND_NOT_AN_ARRAY';
+
+        element = jqLite('<div></div>');
+        expect(function() { $animate.off(element); }).not.toThrow();
+
+        delete Object.prototype.foo;
+      })
+    );
 
     it('should fire a `start` callback when the animation starts with the matching element',
       inject(function($animate, $rootScope, $rootElement, $document) {

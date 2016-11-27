@@ -30,7 +30,7 @@ describe("basic usage", function() {
       }
 
     });
-    callback = jasmine.createSpy();
+    callback = jasmine.createSpy('callback');
   }));
 
 
@@ -626,13 +626,38 @@ describe("basic usage", function() {
     var currentGroup = 'students',
         Person = $resource('/Person/:group/:id', { group: function() { return currentGroup; }});
 
-
     $httpBackend.expect('GET', '/Person/students/fedor').respond({id: 'fedor', email: 'f@f.com'});
 
     var fedor = Person.get({id: 'fedor'});
     $httpBackend.flush();
 
     expect(fedor).toEqualData({id: 'fedor', email: 'f@f.com'});
+  });
+
+
+  it('should pass resource object to dynamic default parameters', function() {
+    var Person = $resource('/Person/:id', {
+      id: function(data) {
+        return data ? data.id : 'fedor';
+      }
+    });
+
+    $httpBackend.expect('GET', '/Person/fedor').respond(
+        {id: 'fedor', email: 'f@f.com', count: 1});
+
+    var fedor = Person.get();
+    $httpBackend.flush();
+
+    expect(fedor).toEqualData({id: 'fedor', email: 'f@f.com', count: 1});
+
+    $httpBackend.expect('POST', '/Person/fedor2').respond(
+        {id: 'fedor2', email: 'f2@f.com', count: 2});
+
+    fedor.id = 'fedor2';
+    fedor.$save();
+    $httpBackend.flush();
+
+    expect(fedor).toEqualData({id: 'fedor2', email: 'f2@f.com', count: 2});
   });
 
 
@@ -861,6 +886,7 @@ describe("basic usage", function() {
         expect(cc.url).toBe('/new-id');
       });
 
+
       it('should pass the same transformed value to success callbacks and to promises', function() {
         $httpBackend.expect('GET', '/CreditCard').respond(200, { value: 'original' });
 
@@ -978,6 +1004,7 @@ describe("basic usage", function() {
       });
     });
 
+
     it('should allow per action response interceptor that gets full response', function() {
       CreditCard = $resource('/CreditCard', {}, {
         query: {
@@ -1033,6 +1060,46 @@ describe("basic usage", function() {
       expect(response.status).toBe(404);
       expect(response.config).toBeDefined();
     });
+
+
+    it('should fulfill the promise with the value returned by the responseError interceptor',
+      inject(function($q) {
+        CreditCard = $resource('/CreditCard', {}, {
+          test1: {
+            method: 'GET',
+            interceptor: {responseError: function() { return 'foo'; }}
+          },
+          test2: {
+            method: 'GET',
+            interceptor: {responseError: function() { return $q.resolve('bar'); }}
+          },
+          test3: {
+            method: 'GET',
+            interceptor: {responseError: function() { return $q.reject('baz'); }}
+          }
+        });
+
+        $httpBackend.whenGET('/CreditCard').respond(404);
+
+        callback.calls.reset();
+        CreditCard.test1().$promise.then(callback);
+        $httpBackend.flush();
+
+        expect(callback).toHaveBeenCalledOnceWith('foo');
+
+        callback.calls.reset();
+        CreditCard.test2().$promise.then(callback);
+        $httpBackend.flush();
+
+        expect(callback).toHaveBeenCalledOnceWith('bar');
+
+        callback.calls.reset();
+        CreditCard.test3().$promise.then(null, callback);
+        $httpBackend.flush();
+
+        expect(callback).toHaveBeenCalledOnceWith('baz');
+      })
+    );
   });
 
 
@@ -1365,6 +1432,33 @@ describe('errors', function() {
     expect(failureSpy.calls.mostRecent().args[0]).toMatch(
         /^\[\$resource:badcfg\] Error in resource configuration for action `get`\. Expected response to contain an object but got an array \(Request: GET \/Customer\/123\)/
       );
+  });
+});
+
+describe('handling rejections', function() {
+  var $httpBackend;
+  var $resource;
+
+  beforeEach(module('ngResource'));
+
+  beforeEach(inject(function(_$httpBackend_, _$resource_) {
+    $httpBackend = _$httpBackend_;
+    $resource = _$resource_;
+
+    $httpBackend.whenGET('/CreditCard').respond(404);
+  }));
+
+
+  it('should reject the promise even when there is an error callback', function() {
+    var errorCb1 = jasmine.createSpy('errorCb1');
+    var errorCb2 = jasmine.createSpy('errorCb2');
+    var CreditCard = $resource('/CreditCard');
+
+    CreditCard.get(noop, errorCb1).$promise.catch(errorCb2);
+    $httpBackend.flush();
+
+    expect(errorCb1).toHaveBeenCalledOnce();
+    expect(errorCb2).toHaveBeenCalledOnce();
   });
 });
 
