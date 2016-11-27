@@ -296,8 +296,10 @@ describe('ngMock', function() {
       expect(counter).toBe(1);
 
       $interval.flush(1000);
-
       expect(counter).toBe(2);
+
+      $interval.flush(2000);
+      expect(counter).toBe(4);
     }));
 
 
@@ -629,7 +631,6 @@ describe('ngMock', function() {
 
       inject(); // Trigger the tests in `module`
     });
-
   });
 
 
@@ -691,6 +692,30 @@ describe('ngMock', function() {
       expect(count).toBe(1);
       $timeout.flush(123);
       expect(count).toBe(2);
+    }));
+
+    it('should resolve timeout functions following the timeline', inject(function($timeout) {
+      var count1 = 0, count2 = 0;
+      var iterate1 = function() {
+        count1++;
+        $timeout(iterate1, 100);
+      };
+      var iterate2 = function() {
+        count2++;
+        $timeout(iterate2, 150);
+      };
+
+      $timeout(iterate1, 100);
+      $timeout(iterate2, 150);
+      $timeout.flush(150);
+      expect(count1).toBe(1);
+      expect(count2).toBe(1);
+      $timeout.flush(50);
+      expect(count1).toBe(2);
+      expect(count2).toBe(1);
+      $timeout.flush(400);
+      expect(count1).toBe(6);
+      expect(count2).toBe(4);
     }));
   });
 
@@ -958,6 +983,22 @@ describe('ngMock', function() {
             });
           });
         }
+      });
+
+      describe('ErrorAddingDeclarationLocationStack', function() {
+        it('should be caught by Jasmine\'s `toThrowError()`', function() {
+          function throwErrorAddingDeclarationStack() {
+            module(function($provide) {
+              $provide.factory('badFactory', function() {
+                throw new Error('BadFactoryError');
+              });
+            });
+
+            inject(function(badFactory) {});
+          }
+
+          expect(throwErrorAddingDeclarationStack).toThrowError(/BadFactoryError/);
+        });
       });
     });
   });
@@ -1633,6 +1674,11 @@ describe('ngMock', function() {
         expect(exp.match('GET', 'a/x')).toBe(false);
       });
 
+      it('should match url with same query params, but different order', function() {
+        var exp = new MockHttpExpectation('GET', 'www.example.com/x/y?a=b&c=d&e=f');
+
+        expect(exp.matchUrl('www.example.com/x/y?e=f&c=d&a=b')).toBe(true);
+      });
 
       it('should accept url as function', function() {
         var urlValidator = function(url) {
@@ -1888,6 +1934,52 @@ describe('ngMock', function() {
         expect(called).toBe(true);
       });
     });
+
+    it('should support assigning bindings when a value is returned from the constructor',
+      function() {
+        var called = false;
+        var data = [
+          { name: 'derp1', id: 0 },
+          { name: 'testname', id: 1 },
+          { name: 'flurp', id: 2 }
+        ];
+        module(function($controllerProvider) {
+          $controllerProvider.register('testCtrl', function() {
+            called = true;
+            expect(this.data).toBe(data);
+
+            return {};
+          });
+        });
+        inject(function($controller, $rootScope) {
+          var ctrl = $controller('testCtrl', { scope: $rootScope }, { data: data });
+          expect(ctrl.data).toBe(data);
+          expect(called).toBe(true);
+        });
+      }
+    );
+
+    if (/chrome/.test(navigator.userAgent)) {
+      it('should support assigning bindings to class-based controller', function() {
+        var called = false;
+        var data = [
+          { name: 'derp1', id: 0 },
+          { name: 'testname', id: 1 },
+          { name: 'flurp', id: 2 }
+        ];
+        module(function($controllerProvider) {
+          //jshint evil: true
+          var TestCtrl = eval('(class { constructor() { called = true; } })');
+          //jshint evil: false
+          $controllerProvider.register('testCtrl', TestCtrl);
+        });
+        inject(function($controller, $rootScope) {
+          var ctrl = $controller('testCtrl', { scope: $rootScope }, { data: data });
+          expect(ctrl.data).toBe(data);
+          expect(called).toBe(true);
+        });
+      });
+    }
   });
 
 
@@ -2119,12 +2211,12 @@ describe('ngMockE2E', function() {
     var hb, realHttpBackend, callback;
 
     beforeEach(function() {
-      module(function($provide) {
-        callback = jasmine.createSpy('callback');
+      callback = jasmine.createSpy('callback');
+      angular.module('ng').config(function($provide) {
         realHttpBackend = jasmine.createSpy('real $httpBackend');
         $provide.value('$httpBackend', realHttpBackend);
-        $provide.decorator('$httpBackend', angular.mock.e2e.$httpBackendDecorator);
       });
+      module('ngMockE2E');
       inject(function($injector) {
         hb = $injector.get('$httpBackend');
       });
@@ -2133,11 +2225,14 @@ describe('ngMockE2E', function() {
 
     describe('passThrough()', function() {
       it('should delegate requests to the real backend when passThrough is invoked', function() {
+        var eventHandlers = {progress: angular.noop};
+        var uploadEventHandlers = {progress: angular.noop};
+
         hb.when('GET', /\/passThrough\/.*/).passThrough();
-        hb('GET', '/passThrough/23', null, callback, {}, null, true, 'blob');
+        hb('GET', '/passThrough/23', null, callback, {}, null, true, 'blob', eventHandlers, uploadEventHandlers);
 
         expect(realHttpBackend).toHaveBeenCalledOnceWith(
-            'GET', '/passThrough/23', null, callback, {}, null, true, 'blob');
+            'GET', '/passThrough/23', null, callback, {}, null, true, 'blob', eventHandlers, uploadEventHandlers);
       });
 
       it('should be able to override a respond definition with passThrough', function() {
@@ -2146,7 +2241,7 @@ describe('ngMockE2E', function() {
         hb('GET', '/passThrough/23', null, callback, {}, null, true);
 
         expect(realHttpBackend).toHaveBeenCalledOnceWith(
-            'GET', '/passThrough/23', null, callback, {}, null, true, undefined);
+            'GET', '/passThrough/23', null, callback, {}, null, true, undefined, undefined, undefined);
       });
 
       it('should be able to override a respond definition with passThrough', inject(function($browser) {
@@ -2445,8 +2540,10 @@ describe('make sure that we can create an injector outside of tests', function()
   angular.injector([function($injector) {}]);
 });
 
+
 describe('`afterEach` clean-up', function() {
   describe('`$rootElement`', function() {
+
     describe('undecorated', function() {
       var prevRootElement;
       var prevCleanDataSpy;
@@ -2608,6 +2705,7 @@ describe('`afterEach` clean-up', function() {
     });
   });
 });
+
 
 describe('sharedInjector', function() {
   // this is of a bit tricky feature to test as we hit angular's own testing
@@ -2866,5 +2964,4 @@ describe('sharedInjector', function() {
     if (typeof fn !== "function") throw Error("not fn", fn);
     sdescribe.current.afterEach.push(fn);
   }
-
 });
