@@ -249,7 +249,7 @@ var angularFiles = {
   angularFiles['karmaJquery' + jQueryVersion] = []
     .concat(angularFiles.karmaJquery)
     .map(function (path) {
-      if (path.startsWith('bower_components/jquery')) {
+      if (path && path.match(/bower_components\/jquery/) !== null) {
         return path.replace(/^bower_components\/jquery/, 'bower_components/jquery-' + jQueryVersion);
       }
       return path;
